@@ -2,16 +2,21 @@ use miniquad::*;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
-struct Vec2 {
-	x: f32,
-	y: f32,
+pub struct Vec2 {
+	pub x: f32,
+	pub y: f32,
+}
+impl Vec2 {
+	pub(crate) fn new(x: f32, y: f32) -> Self {
+		Vec2 { x, y }
+	}
 }
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
-struct Vertex {
-	pos: Vec2,
-	uv: Vec2,
+pub struct Vertex {
+	pub pos: Vec2,
+	pub uv: Vec2,
 }
 
 pub struct Stage {
