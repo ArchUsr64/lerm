@@ -1,11 +1,11 @@
 #version 450
 
 in vec2 pos;
-in vec3 color;
+in vec2 uv;
 
-out vec4 vert_out_color;
+out vec2 frag_uv;
 
 void main() {
-	vert_out_color = vec4(color, 1.);
-	gl_Position = vec4(pos, 1., 1.);
+	frag_uv = uv;
+	gl_Position = vec4(pos, 0., 1.);
 }
