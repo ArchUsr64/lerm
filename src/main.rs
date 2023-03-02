@@ -11,7 +11,7 @@ struct Window {
 impl Window {
 	fn new(ctx: &mut Context) -> Self {
 		let (width, height, pixel_data) =
-			font::parse_pbm(include_str!("../res/font_atlas.pbm")).unwrap();
+			font::parse_pgm(include_str!("../res/font_atlas.pgm")).unwrap();
 		let texture_atlas = Texture::new(
 			ctx,
 			TextureAccess::Static,

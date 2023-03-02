@@ -2,7 +2,6 @@ use crate::graphics::{Vec2, Vertex};
 
 ///Stores attributes required to render each Glyph
 ///Dimensions must be specified in a top-left coordinate system with `(0, 0)` at top-left and `(1, 1)` at bottom-right
-#[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Glyph {
 	pub size: Vec2,
@@ -69,19 +68,20 @@ impl Glyph {
 		[bottom_left, bottom_right, top_right, top_left]
 	}
 }
+
 /// Reads pbm files from the given file_path
 /// Return a tuple with following parameters of the image `(width, height, vector with pixel values)`
 /// Comments are also not supported
-pub fn parse_pbm(file_data: &str) -> Option<(u32, u32, Vec<u8>)> {
+pub fn parse_pgm(file_data: &str) -> Option<(u32, u32, Vec<u8>)> {
 	let mut metadata = file_data.chars();
-	if metadata.next_chunk::<2>().ok()?.iter().collect::<String>() != *"P1" {
+	if metadata.next_chunk::<2>().ok()?.iter().collect::<String>() != *"P2" {
 		return None;
 	}
 	metadata.next()?;
 	let mut dimensions = Vec::<u32>::with_capacity(2);
 	let mut pixel_data = Vec::new();
 	for (line_number, line) in file_data.lines().enumerate() {
-		if line_number == 0 || line.trim_start().starts_with('#') {
+		if line_number == 0 || line_number == 4 || line.trim_start().starts_with('#') {
 			continue;
 		}
 		if dimensions.is_empty() {
@@ -92,15 +92,10 @@ pub fn parse_pbm(file_data: &str) -> Option<(u32, u32, Vec<u8>)> {
 			assert!(dimensions.len() == 2 && dimensions[0] > 0 && dimensions[1] > 0);
 			pixel_data.reserve(dimensions.iter().product::<u32>() as usize);
 		} else {
-			let mut buffer = line
-				.chars()
-				.map(|i| i.to_digit(2).unwrap() as u8)
-				.map(|i| if i == 1 { 0 } else { 255 })
-				.collect();
-			pixel_data.append(&mut buffer);
+			pixel_data.push(line.parse().unwrap());
 		}
 	}
-	assert!(dimensions.iter().product::<u32>() == pixel_data.len() as u32);
+	assert_eq!(dimensions.iter().product::<u32>(), pixel_data.len() as u32);
 	let (width, height) = (dimensions[0], dimensions[1]);
 	// Flip the image vertically
 	let mut pixel_data_flipped = Vec::with_capacity(pixel_data.len());
