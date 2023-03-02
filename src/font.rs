@@ -81,7 +81,7 @@ pub fn parse_pgm(file_data: &str) -> Option<(u32, u32, Vec<u8>)> {
 	let mut dimensions = Vec::<u32>::with_capacity(2);
 	let mut pixel_data = Vec::new();
 	for (line_number, line) in file_data.lines().enumerate() {
-		if line_number == 0 || line_number == 4 || line.trim_start().starts_with('#') {
+		if line_number == 0 || line_number == 3 || line.trim_start().starts_with('#') {
 			continue;
 		}
 		if dimensions.is_empty() {
