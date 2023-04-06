@@ -1,4 +1,4 @@
-use crate::font::{CharacterGrid, Glyph};
+use crate::font::CharacterGrid;
 use miniquad::*;
 
 #[repr(C)]
@@ -78,7 +78,7 @@ impl Stage {
 		)];
 		self.bindings.index_buffer.delete();
 		let index_buffer: Vec<_> = (0..self.vertex_buffer.len() as u16 / 4)
-			.flat_map(|i| [0, 1, 2, 0, 2, 3].iter().map(move |j| 4*i + j))
+			.flat_map(|i| [0, 1, 2, 0, 2, 3].iter().map(move |j| 4 * i + j))
 			.collect();
 		self.bindings.index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &index_buffer);
 		ctx.apply_bindings(&self.bindings);

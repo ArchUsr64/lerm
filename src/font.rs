@@ -2,7 +2,7 @@ use crate::graphics::{Vec2, Vertex};
 
 const TEXTURE_ATLAS_SIZE: Vec2 = Vec2 { x: 19., y: 5. };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CharacterGrid {
 	font_size: f32,
 	window_size: (f32, f32),
@@ -20,8 +20,10 @@ impl CharacterGrid {
 		Self { values, ..grid }
 	}
 	pub fn insert_text(&mut self, text: &str) {
-		text.chars()
-			.for_each(|char| self.values.push(char));
+		text.chars().for_each(|char| self.values.push(char));
+	}
+	pub fn pop(&mut self) {
+		self.values.pop();
 	}
 	#[inline]
 	pub fn size(&self) -> (usize, usize) {

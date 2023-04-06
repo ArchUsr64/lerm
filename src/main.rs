@@ -8,6 +8,7 @@ use graphics::Stage;
 
 struct Window {
 	stage: Stage,
+	grid: CharacterGrid,
 }
 
 impl Window {
@@ -25,17 +26,33 @@ impl Window {
 				..Default::default()
 			},
 		);
+		let text_size = 20.;
 		Self {
 			stage: Stage::new(ctx, texture_atlas),
+			grid: CharacterGrid::new(text_size, ctx.screen_size()),
 		}
+	}
+	fn render(&mut self, ctx: &mut Context) {
+		self.stage.render(ctx, self.grid.clone());
 	}
 }
 
 impl EventHandler for Window {
 	fn draw(&mut self, ctx: &mut Context) {
-		let mut grid = CharacterGrid::new(40., ctx.screen_size());
-		grid.insert_text("The quick brown fox jumped over the lazy dogs");
-		self.stage.render(ctx, grid);
+		self.render(ctx);
+	}
+	fn char_event(
+		&mut self,
+		_ctx: &mut Context,
+		character: char,
+		_keymods: KeyMods,
+		_repeat: bool,
+	) {
+		if character.is_alphanumeric() || character.is_whitespace() {
+			self.grid.insert_text(character.to_string().as_str());
+		} else if character as u8 == 42 {
+			self.grid.pop();
+		}
 	}
 	fn update(&mut self, _ctx: &mut Context) {}
 }
