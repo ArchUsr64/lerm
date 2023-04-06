@@ -22,6 +22,10 @@ impl CharacterGrid {
 	pub fn insert_text(&mut self, text: &str) {
 		text.chars().for_each(|char| self.values.push(char));
 	}
+	pub fn fill_line(&mut self) {
+		let fill_size = self.size().0 - self.values.len() % self.size().0;
+		(0..fill_size).for_each(|_| self.values.push(' '));
+	}
 	pub fn pop(&mut self) {
 		self.values.pop();
 	}

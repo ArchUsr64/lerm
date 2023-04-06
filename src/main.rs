@@ -48,10 +48,14 @@ impl EventHandler for Window {
 		_keymods: KeyMods,
 		_repeat: bool,
 	) {
-		if character.is_alphanumeric() || character.is_whitespace() {
-			self.grid.insert_text(character.to_string().as_str());
-		} else if character as u8 == 42 {
-			self.grid.pop();
+		match character as u8 {
+			42 => self.grid.pop(),
+			40 => self.grid.fill_line(),
+			_ => {
+				if character.is_alphanumeric() || character.is_whitespace() {
+					self.grid.insert_text(character.to_string().as_str());
+				}
+			}
 		}
 	}
 	fn update(&mut self, _ctx: &mut Context) {}
