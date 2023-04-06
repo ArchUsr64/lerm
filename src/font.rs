@@ -21,7 +21,7 @@ impl CharacterGrid {
 	}
 	pub fn insert_text(&mut self, text: &str) {
 		text.chars()
-			.for_each(|char| self.values.push_within_capacity(char).unwrap());
+			.for_each(|char| self.values.push(char));
 	}
 	#[inline]
 	pub fn size(&self) -> (usize, usize) {
@@ -58,8 +58,8 @@ impl CharacterGrid {
 			Glyph {
 				size: glyph_size,
 				pos: with_offset(i as f32 * glyph_size.x, j as f32 * glyph_size.y),
-				uv_size: uv_size,
-				uv_pos: uv_pos,
+				uv_size,
+				uv_pos,
 			}
 		})
 	}
