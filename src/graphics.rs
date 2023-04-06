@@ -1,4 +1,4 @@
-use crate::font::Glyph;
+use crate::font::{CharacterGrid, Glyph};
 use miniquad::*;
 
 #[repr(C)]
@@ -63,31 +63,26 @@ impl Stage {
 		}
 	}
 
-	pub fn render(&mut self, ctx: &mut Context) {
+	pub fn render(&mut self, ctx: &mut Context, character_grid: CharacterGrid) {
 		ctx.begin_default_pass(Default::default());
 		ctx.apply_pipeline(&self.pipeline);
 		self.bindings.vertex_buffers[0].delete();
-		self.vertex_buffer = Glyph {
-			size: Vec2::new(1., 1.),
-			pos: Vec2::new(0., 0.),
-			uv_pos: Vec2::new(0., 0.),
-			uv_size: Vec2::new(1., 1.),
-		}
-		.as_vertices()
-		.to_vec();
+		self.vertex_buffer = Vec::new();
+		character_grid
+			.glyphs()
+			.for_each(|glyph| self.vertex_buffer.append(&mut glyph.as_vertices().to_vec()));
 		self.bindings.vertex_buffers = vec![Buffer::immutable(
 			ctx,
 			BufferType::VertexBuffer,
 			&self.vertex_buffer,
 		)];
 		self.bindings.index_buffer.delete();
-		let index_buffer: Vec<_> = [0, 1, 2, 0, 2, 3]
-			.iter()
-			.flat_map(|i| (0..self.vertex_buffer.len() as u16 / 4).map(move |j| i + j))
+		let index_buffer: Vec<_> = (0..self.vertex_buffer.len() as u16 / 4)
+			.flat_map(|i| [0, 1, 2, 0, 2, 3].iter().map(move |j| 4*i + j))
 			.collect();
 		self.bindings.index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &index_buffer);
 		ctx.apply_bindings(&self.bindings);
-		ctx.draw(0, 6, 1);
+		ctx.draw(0, self.vertex_buffer.len() as i32 * 6 / 4, 1);
 		ctx.end_render_pass();
 		ctx.commit_frame();
 	}

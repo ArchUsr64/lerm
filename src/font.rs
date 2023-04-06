@@ -1,5 +1,70 @@
 use crate::graphics::{Vec2, Vertex};
 
+const TEXTURE_ATLAS_SIZE: Vec2 = Vec2 { x: 19., y: 5. };
+
+#[derive(Debug)]
+pub struct CharacterGrid {
+	font_size: f32,
+	window_size: (f32, f32),
+	values: Vec<char>,
+}
+impl CharacterGrid {
+	pub fn new(font_size: f32, window_size: (f32, f32)) -> Self {
+		let grid = Self {
+			font_size,
+			window_size,
+			values: Vec::new(),
+		};
+		let grid_size = grid.size();
+		let values = Vec::with_capacity(grid_size.0 * grid_size.1);
+		Self { values, ..grid }
+	}
+	pub fn insert_text(&mut self, text: &str) {
+		text.chars()
+			.for_each(|char| self.values.push_within_capacity(char).unwrap());
+	}
+	#[inline]
+	pub fn size(&self) -> (usize, usize) {
+		(
+			(self.window_size.0 / (self.font_size * 0.5)) as usize,
+			(self.window_size.1 / self.font_size) as usize,
+		)
+	}
+	pub fn glyphs(&self) -> impl Iterator<Item = Glyph> + '_ {
+		let (grid_width, grid_height) = self.size();
+		let (grid_width, grid_height) = (grid_width as f32, grid_height as f32);
+		let viewport_size = Vec2::new(
+			(grid_width * self.font_size * 0.5) / self.window_size.0,
+			(grid_height * self.font_size) / self.window_size.1,
+		);
+		let offset = Vec2::new((1. - viewport_size.x) / 2., (1. - viewport_size.y) / 2.);
+		let glyph_size = Vec2::new(viewport_size.x / grid_width, viewport_size.y / grid_height);
+		let uv_size = Vec2::new(TEXTURE_ATLAS_SIZE.x.recip(), TEXTURE_ATLAS_SIZE.y.recip());
+		let with_offset = move |x: f32, y: f32| Vec2::new(x + offset.x, y + offset.y);
+		(0..self.values.len()).map(move |k| {
+			let char = self.values.get(k).unwrap_or(&'\0');
+			let i = k % grid_width as usize;
+			let j = k / grid_width as usize;
+			let uv_index = if (' '..='~').contains(char) {
+				let char_val = *char as u8 - b' ';
+				(
+					char_val % TEXTURE_ATLAS_SIZE.x as u8,
+					char_val / TEXTURE_ATLAS_SIZE.x as u8,
+				)
+			} else {
+				(0, 0)
+			};
+			let uv_pos = Vec2::new(uv_index.0 as f32 * uv_size.x, uv_index.1 as f32 * uv_size.y);
+			Glyph {
+				size: glyph_size,
+				pos: with_offset(i as f32 * glyph_size.x, j as f32 * glyph_size.y),
+				uv_size: uv_size,
+				uv_pos: uv_pos,
+			}
+		})
+	}
+}
+
 ///Stores attributes required to render each Glyph
 ///Dimensions must be specified in a top-left coordinate system with `(0, 0)` at top-left and `(1, 1)` at bottom-right
 #[derive(Clone, Copy, Debug)]
@@ -22,46 +87,46 @@ impl Glyph {
 		let uv_width = self.uv_size.x;
 		let uv_height = self.uv_size.y;
 
-		let lerp = |a: f32, b: f32, t: f32| a * (1.0 - t) + b * t;
+		let lerp = |a: f32, b: f32, t: f32| a * (1. - t) + b * t;
 
 		let top_left = Vertex {
 			pos: Vec2 {
-				x: lerp(-1.0, 1.0, glyph_x),
-				y: lerp(1.0, -1.0, glyph_y),
+				x: lerp(-1., 1., glyph_x),
+				y: lerp(1., -1., glyph_y),
 			},
 			uv: Vec2 {
 				x: uv_x,
-				y: lerp(1.0 - uv_y, 1.0 - uv_y - uv_height, glyph_y),
+				y: lerp(1., 0., uv_y),
 			},
 		};
 		let top_right = Vertex {
 			pos: Vec2 {
-				x: lerp(-1.0, 1.0, glyph_x + glyph_width),
-				y: lerp(1.0, -1.0, glyph_y),
+				x: lerp(-1., 1., glyph_x + glyph_width),
+				y: lerp(1., -1., glyph_y),
 			},
 			uv: Vec2 {
 				x: uv_x + uv_width,
-				y: lerp(1.0 - uv_y, 1.0 - uv_y - uv_height, glyph_y),
+				y: lerp(1., 0., uv_y),
 			},
 		};
 		let bottom_left = Vertex {
 			pos: Vec2 {
-				x: lerp(-1.0, 1.0, glyph_x),
-				y: lerp(1.0, -1.0, glyph_y + glyph_height),
+				x: lerp(-1., 1., glyph_x),
+				y: lerp(1., -1., glyph_y + glyph_height),
 			},
 			uv: Vec2 {
 				x: uv_x,
-				y: lerp(1.0 - uv_y, 1.0 - uv_y - uv_height, glyph_y + glyph_height),
+				y: lerp(1., 0., uv_y + uv_height),
 			},
 		};
 		let bottom_right = Vertex {
 			pos: Vec2 {
-				x: lerp(-1.0, 1.0, glyph_x + glyph_width),
-				y: lerp(1.0, -1.0, glyph_y + glyph_height),
+				x: lerp(-1., 1., glyph_x + glyph_width),
+				y: lerp(1., -1., glyph_y + glyph_height),
 			},
 			uv: Vec2 {
 				x: uv_x + uv_width,
-				y: lerp(1.0 - uv_y, 1.0 - uv_y - uv_height, glyph_y + glyph_height),
+				y: lerp(1., 0., uv_y + uv_height),
 			},
 		};
 

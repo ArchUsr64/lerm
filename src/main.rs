@@ -1,7 +1,9 @@
+#![feature(vec_push_within_capacity)]
 #![feature(iter_next_chunk)]
 use miniquad::*;
 mod font;
 mod graphics;
+use font::CharacterGrid;
 use graphics::Stage;
 
 struct Window {
@@ -31,7 +33,9 @@ impl Window {
 
 impl EventHandler for Window {
 	fn draw(&mut self, ctx: &mut Context) {
-		self.stage.render(ctx);
+		let mut grid = CharacterGrid::new(40., ctx.screen_size());
+		grid.insert_text("The quick brown fox jumped over the lazy dogs");
+		self.stage.render(ctx, grid);
 	}
 	fn update(&mut self, _ctx: &mut Context) {}
 }
