@@ -26,6 +26,17 @@ impl CharacterGrid {
 		let fill_size = self.size().0 - self.values.len() % self.size().0;
 		(0..fill_size).for_each(|_| self.values.push(' '));
 	}
+	pub fn trim_whitespace(&mut self) {
+		while let Some(' ') = self.values.last() {
+			self.values.pop();
+		}
+	}
+	pub fn delete_word(&mut self) {
+		self.trim_whitespace();
+		while self.values.last() != Some(&' ') && !self.values.is_empty() {
+			self.values.pop();
+		}
+	}
 	pub fn pop(&mut self) {
 		self.values.pop();
 	}

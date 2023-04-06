@@ -41,16 +41,18 @@ impl EventHandler for Window {
 	fn draw(&mut self, ctx: &mut Context) {
 		self.render(ctx);
 	}
-	fn char_event(
-		&mut self,
-		_ctx: &mut Context,
-		character: char,
-		_keymods: KeyMods,
-		_repeat: bool,
-	) {
-		match character as u8 {
-			42 => self.grid.pop(),
-			40 => self.grid.fill_line(),
+	fn char_event(&mut self, _ctx: &mut Context, character: char, keymods: KeyMods, _repeat: bool) {
+		if keymods.ctrl {
+			if let 'w' = character {
+				self.grid.delete_word()
+			}
+			return;
+		}
+		match character {
+			//Backspace
+			'\u{f02a}' => self.grid.pop(),
+			//Return
+			'\n' | '\u{f028}' => self.grid.fill_line(),
 			_ => {
 				if character.is_alphanumeric() || character.is_whitespace() {
 					self.grid.insert_text(character.to_string().as_str());
